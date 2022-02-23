@@ -18,7 +18,8 @@
 # VPN_CHECK_METHOD : How to check if the VPN connection is alive. Options:
 # - "dsm_status" (default) : assume OK if Synology DSM reports the VPN connection is alive
 # - "gateway_ping" : assume OK if the default gateway (i.e. VPN server) responds to ICMP ping
-VPN_CHECK_METHOD=dsm_status
+# - "simple_ping" : assume OK if the VPN server responds to web ping
+VPN_CHECK_METHOD=simple_ping
 
 #-------------------------------------------------------------------------------
 #  Process VPN config files
@@ -62,7 +63,7 @@ fi
 #-------------------------------------------------------------------------------
 
 function check_dsm_status() {
-	if [[ $(/usr/syno/bin/synovpnc get_conn | grep Uptime) ]]; then
+	if [[ $(/usr/syno/bin/synovpnc get_conn | grep RX) != "RX : 0"]]; then
 		echo "[I] Synology DSM reports VPN is connected."
 		return 0
 	else
@@ -84,10 +85,25 @@ function check_gateway_ping() {
 	fi
 }
 
+function check_ping() {
+	local firstCheck=$(curl -s --connect-timeout 5  https://api.ipify.org)
+	local secondCheck=$(curl -s --connect-timeout 5  https://api.my-ip.io/ip)
+
+	if [[ $firstCheck == "" && $secondCheck == "" ]]; then
+		echo "[E] Unable to get ping."
+		return 1
+	else
+		echo "[I] Ping is OK."
+		return 0
+	fi
+}
+
 function check_vpn_connection() {
 	local CONNECTION_STATUS=disconnected
 	if [[ $VPN_CHECK_METHOD = "gateway_ping" ]]; then
 		check_dsm_status && check_gateway_ping && CONNECTION_STATUS=connected
+	elif [[ $VPN_CHECK_METHOD = "simple_ping" ]]; then
+		check_dsm_status && check_ping && CONNECTION_STATUS=connected
 	else
 		check_dsm_status && CONNECTION_STATUS=connected
 	fi
