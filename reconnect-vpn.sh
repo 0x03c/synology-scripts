@@ -63,7 +63,7 @@ fi
 #-------------------------------------------------------------------------------
 
 function check_dsm_status() {
-	if [[ $(/usr/syno/bin/synovpnc get_conn | grep RX) != "RX : 0"]]; then
+	if [[ $(/usr/syno/bin/synovpnc get_conn | grep RX) != "RX : 0" ]]; then
 		echo "[I] Synology DSM reports VPN is connected."
 		return 0
 	else
