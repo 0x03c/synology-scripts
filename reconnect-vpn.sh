@@ -7,7 +7,7 @@
 #       README:  https://github.com/ianharrier/synology-scripts
 #
 #       AUTHOR:  Ian Harrier
-#      VERSION:  1.2.1
+#      VERSION:  1.2.2
 #      LICENSE:  MIT License
 #===============================================================================
 
@@ -90,7 +90,7 @@ function check_ping() {
 	local firstCheck=$(curl -s --connect-timeout 5  https://api.ipify.org)
 	local secondCheck=$(curl -s --connect-timeout 5  https://api.my-ip.io/ip)
 
-	if [[ $firstCheck == "" && $secondCheck == "" ]]; then
+	if [[ $firstCheck != "$secondCheck" ]]; then
 		echo "[E] Unable to get ping."
 		return 1
 	else
